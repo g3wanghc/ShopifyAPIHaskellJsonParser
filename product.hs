@@ -2,6 +2,9 @@
   Project:      Shopify Task
   Description:  (ﾉ◕ヮ◕)ﾉ*:･ﾟ✧ Let's make some additions! ✧ﾟ･: *ヽ(◕ヮ◕ヽ)
 
+  Dependencies and Installatin with Cabal Hell
+  cabal install http-conduit aeson
+
   Usage: ghc product.hs -e 'main'
 
   Hanchen Wang 2015 
@@ -89,7 +92,7 @@ data Product = Product {
 }deriving (Show)
 
 data Products = Products{
-    products_products       :: [Product]
+    products_data       :: [Product]
 } deriving (Show)
 
 -- Hydrate -------------------------------------------------------------
@@ -183,7 +186,7 @@ sumProducts products types =
         (map product_variants (matchedProducts products types)))
 
 totalCost :: Products -> [String] -> Float
-totalCost catalogue types =  (sumProducts (products_products catalogue) types)
+totalCost catalogue types =  (sumProducts (products_data catalogue) types)
 
 -- I like lamps and wallets --------------------------------------------
 
