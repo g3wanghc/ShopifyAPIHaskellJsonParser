@@ -190,7 +190,7 @@ totalCost catalogue types =  (sumProducts (products_data catalogue) types)
 
 -- I like lamps and wallets --------------------------------------------
 
-desired_item_types = ["Lamp", "Wallet"]
+desired_item_types = ["Computer", "Keyboard"]
 
 -- Main
 
