@@ -7,6 +7,9 @@
 
   Usage: ghc product.hs -e 'main'
 
+  Note: Use homebrew or linuxbrew's brew install ghc haskell-install
+        Otherwise, be careful about package dependencies 
+
   Hanchen Wang 2015 
 -}
 
