@@ -169,6 +169,8 @@ availableVariants variants = filter variant_available variants
 numberOfOptions :: Variant -> Float
 numberOfOptions variant = 1
 
+-- Modify this to sort the variants in ascending by gram and add them until
+-- the weight limit is reached
 sumVariants :: [Variant] -> Float
 sumVariants variants = foldr (+) 0 (
     map (\x -> (variant_price x) * (numberOfOptions x)) variants)
@@ -180,6 +182,7 @@ matchedProducts :: [Product] -> [String] -> [Product]
 matchedProducts products types = 
     filter (\x -> (matchesTypes (product_product_type x) types) ) products
 
+-- Modify this to output variants as an array
 sumProducts :: [Product] -> [String] -> Float
 sumProducts products types = 
     foldr (+) 0 (map sumVariants 
