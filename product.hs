@@ -29,11 +29,17 @@ import Data.Ord (comparing)
 
 -- Data ------------------------------------------------------------------
 
-jsonURL :: String
-jsonURL = "http://shopicruit.myshopify.com/products.json"
+json_url :: String
+json_url = "http://shopicruit.myshopify.com/products.json"
+
+carry_strenght_grams :: Integer
+carry_strenght_grams = 100000
+
+desired_item_types :: [String]
+desired_item_types = ["Computer", "Keyboard"]
 
 getJSON :: IO B.ByteString
-getJSON = simpleHttp jsonURL
+getJSON = simpleHttp json_url
 
 
 -- Casting ---------------------------------------------------------------
@@ -206,8 +212,6 @@ totalCost :: Shop -> [String] -> Integer -> Float
 totalCost catalogue types strength = costOfVariants(carryAsMuch 
     (matchedVariants catalogue types) strength) 
 
-carry_strenght_grams = 100000
-desired_item_types = ["Computer", "Keyboard"]
 
 -- Main
 
