@@ -1,6 +1,6 @@
 {-|
   Project:      Shopify Task
-  Description:  (ﾉ◕ヮ◕)ﾉ*:･ﾟ✧ Let's make some additions! ✧ﾟ･: *ヽ(◕ヮ◕ヽ)
+  Description:  (ﾉ◕ヮ◕)ﾉ*:･ﾟ✧ Let's make some greedy additions! ✧ﾟ･: *ヽ(◕ヮ◕ヽ)
 
   cabal install http-conduit aeson
 
@@ -100,7 +100,7 @@ data Shop = Shop{
     shop_data       :: [Product]
 } deriving (Show)
 
--- Hydrate -------------------------------------------------------------
+-- Hydrate ---------------------------------------------------------------
 
 instance FromJSON Image where
     parseJSON (Object v) = 
@@ -161,11 +161,11 @@ instance FromJSON Shop where
         Shop <$>
         (v .: "products") 
 
--- IO ------------------------------------------------------------------
+-- IO --------------------------------------------------------------------
 
 tryGet = (eitherDecode <$> getJSON) :: IO (Either String Shop)
 
--- Logic ---------------------------------------------------------------
+-- Logic -----------------------------------------------------------------
 
 
 matchesTypes :: String -> [String] -> Bool
@@ -176,8 +176,8 @@ matchedProducts products types =
     filter (\x -> (matchesTypes (product_product_type x) types) ) products
  
 matchedVariants :: Shop -> [String] -> [Variant]
-matchedVariants catalogue types = (foldr (++) [] (map product_variants (
-    matchedProducts (shop_data catalogue) types)))
+matchedVariants catalogue types = foldr (++) [] (map product_variants (
+    matchedProducts (shop_data catalogue) types))
 
 -- greedy approach
 orderVariantByGrams :: [Variant] -> [Variant]
@@ -187,11 +187,13 @@ availableVariants :: [Variant] -> [Variant]
 availableVariants variants = filter variant_available variants
 
 rollingSumVariants :: [Variant] -> [(Integer, Variant)]
-rollingSumVariants variants = zip (scanl1 (+) (map variant_grams variants)) variants
+rollingSumVariants variants = zip 
+    (scanl1 (+) (map variant_grams variants)) variants
 
 carryAsMuch :: [Variant] -> Integer -> [Variant]
-carryAsMuch variants strength = (map snd 
-    (takeWhile (\(c_sum, variant) -> c_sum <= strength) (rollingSumVariants variants)))
+carryAsMuch variants strength = map snd 
+    (takeWhile (\(c_sum, variant) -> c_sum <= strength) (
+        rollingSumVariants (orderVariantByGrams variants)))
 
 numberOfOptions :: Variant -> Float
 numberOfOptions variant = 1
@@ -201,10 +203,8 @@ costOfVariants variants = foldr (+) 0 (
     map (\x -> (variant_price x) * (numberOfOptions x)) variants)
 
 totalCost :: Shop -> [String] -> Integer -> Float
-totalCost catalogue types strenght = (
-    costOfVariants (carryAsMuch (
-        matchedVariants catalogue types) 
-    strenght))
+totalCost catalogue types strength = costOfVariants(carryAsMuch 
+    (matchedVariants catalogue types) strength) 
 
 carry_strenght_grams = 100000
 desired_item_types = ["Computer", "Keyboard"]
@@ -217,5 +217,7 @@ main = do
     case result of 
         Left err    -> putStrLn ("Something went wrong: " ++ err)
         Right shop_catalogue -> putStrLn ("It will cost: $" 
-            ++ show (totalCost shop_catalogue desired_item_types carry_strenght_grams)
+            ++ show (totalCost shop_catalogue desired_item_types 
+                carry_strenght_grams)
             )
+
