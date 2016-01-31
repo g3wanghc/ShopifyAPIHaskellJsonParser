@@ -2,7 +2,6 @@
   Project:      Shopify Task
   Description:  (ﾉ◕ヮ◕)ﾉ*:･ﾟ✧ Let's make some additions! ✧ﾟ･: *ヽ(◕ヮ◕ヽ)
 
-  Dependencies and Installatin with Cabal Hell
   cabal install http-conduit aeson
 
   Usage: ghc product.hs -e 'main'
@@ -10,7 +9,7 @@
   Note: Use homebrew or linuxbrew's brew install ghc haskell-install
         Otherwise, be careful about package dependencies 
 
-  Hanchen Wang 2015 
+  Hanchen Wang 2016
 -}
 
 {-# LANGUAGE OverloadedStrings, DeriveGeneric #-}
@@ -24,6 +23,9 @@ import Control.Monad
 
 import qualified Data.ByteString.Lazy as B
 import Network.HTTP.Conduit (simpleHttp)
+
+import Data.List (sortBy)
+import Data.Ord (comparing)
 
 -- Data ------------------------------------------------------------------
 
@@ -94,8 +96,8 @@ data Product = Product {
     product_options         :: [Option]
 }deriving (Show)
 
-data Products = Products{
-    products_data       :: [Product]
+data Shop = Shop{
+    shop_data       :: [Product]
 } deriving (Show)
 
 -- Hydrate -------------------------------------------------------------
@@ -154,29 +156,17 @@ instance FromJSON Product where
         (v .: "images")                             <*>
         (v .: "options")
 
-instance FromJSON Products where
+instance FromJSON Shop where
     parseJSON (Object v) = 
-        Products <$>
+        Shop <$>
         (v .: "products") 
 
 -- IO ------------------------------------------------------------------
 
-tryGet = (eitherDecode <$> getJSON) :: IO (Either String Products)
+tryGet = (eitherDecode <$> getJSON) :: IO (Either String Shop)
 
 -- Logic ---------------------------------------------------------------
 
-availableVariants :: [Variant] -> [Variant]
-availableVariants variants = filter variant_available variants
-
--- options* {0, 1, 2, 3}, ¯\_(ツ)_/¯
-numberOfOptions :: Variant -> Float
-numberOfOptions variant = 1
-
--- Modify this to sort the variants in ascending by gram and add them until
--- the weight limit is reached
-sumVariants :: [Variant] -> Float
-sumVariants variants = foldr (+) 0 (
-    map (\x -> (variant_price x) * (numberOfOptions x)) variants)
 
 matchesTypes :: String -> [String] -> Bool
 matchesTypes product_type types = (elem product_type types)
@@ -184,18 +174,39 @@ matchesTypes product_type types = (elem product_type types)
 matchedProducts :: [Product] -> [String] -> [Product]
 matchedProducts products types = 
     filter (\x -> (matchesTypes (product_product_type x) types) ) products
+ 
+matchedVariants :: Shop -> [String] -> [Variant]
+matchedVariants catalogue types = (foldr (++) [] (map product_variants (
+    matchedProducts (shop_data catalogue) types)))
 
--- Modify this to output variants as an array
-sumProducts :: [Product] -> [String] -> Float
-sumProducts products types = 
-    foldr (+) 0 (map sumVariants 
-        (map product_variants (matchedProducts products types)))
+-- greedy approach
+orderVariantByGrams :: [Variant] -> [Variant]
+orderVariantByGrams = sortBy (comparing variant_grams)
 
-totalCost :: Products -> [String] -> Float
-totalCost catalogue types =  (sumProducts (products_data catalogue) types)
+availableVariants :: [Variant] -> [Variant]
+availableVariants variants = filter variant_available variants
 
--- I like lamps and wallets --------------------------------------------
+rollingSumVariants :: [Variant] -> [(Integer, Variant)]
+rollingSumVariants variants = zip (scanl1 (+) (map variant_grams variants)) variants
 
+carryAsMuch :: [Variant] -> Integer -> [Variant]
+carryAsMuch variants strength = (map snd 
+    (takeWhile (\(c_sum, variant) -> c_sum <= strength) (rollingSumVariants variants)))
+
+numberOfOptions :: Variant -> Float
+numberOfOptions variant = 1
+
+costOfVariants :: [Variant] -> Float
+costOfVariants variants = foldr (+) 0 (
+    map (\x -> (variant_price x) * (numberOfOptions x)) variants)
+
+totalCost :: Shop -> [String] -> Integer -> Float
+totalCost catalogue types strenght = (
+    costOfVariants (carryAsMuch (
+        matchedVariants catalogue types) 
+    strenght))
+
+carry_strenght_grams = 100000
 desired_item_types = ["Computer", "Keyboard"]
 
 -- Main
@@ -205,5 +216,6 @@ main = do
     result <- tryGet 
     case result of 
         Left err    -> putStrLn ("Something went wrong: " ++ err)
-        Right p     -> putStrLn ("It will cost: $" 
-            ++ show (totalCost p desired_item_types))
+        Right shop_catalogue -> putStrLn ("It will cost: $" 
+            ++ show (totalCost shop_catalogue desired_item_types carry_strenght_grams)
+            )
