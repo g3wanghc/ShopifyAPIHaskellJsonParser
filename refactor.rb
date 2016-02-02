@@ -20,12 +20,14 @@ class ShopifyAPIClient
   
     # request builder, to json
     def get_json(url)
-        begin
-            result_json = some_http_library.get(url, params)
-        rescue
-            # try, catch and rescue
+        if shop_id_isset
+            begin
+                result_json = some_http_library.get(url, params)
+            rescue
+                # try, catch and rescue
+            end
+            return JSON.parse(result_json)
         end
-        return JSON.parse(result_json)
     end
   
     # validation is set of shop_id
@@ -34,23 +36,21 @@ class ShopifyAPIClient
             raise "\"shop_id\" is missing\n" +
             "Use method: set_shop_id to initialize \"shop_id\"" 
         end
+        return true
     end
   
     # simplified the construction of requests
     def orders
-        shop_id_isset
         json_url = @shop_url + "/orders"
         return get_json(json_url)
     end
   
     def products
-        shop_id_isset
         json_url = @shop_url + "/products"
         return get_json(json_url)
     end
   
     def product(id)
-        shop_id_isset
         json_url = @shop_url + "/products/#{id}"
         return get_json(json_url)
     end
