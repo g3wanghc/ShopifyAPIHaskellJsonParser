@@ -1,1 +1,26 @@
-1. Complete this 'Shopicruit' task we created just for you: You've discovered the Shopify Store 'Shopicruit'. Since you're obsessed with computers, you want to buy every single computer and keyboard variant they have to offer. Unfortunately you can only carry up to 100kg and may not be able to buy all of them. By inspecting the JavaScript calls on the store you discovered that the shop lists products at http://shopicruit.myshopify.com/products.json. Write a program that calculates what the maximum amount of computers and keyboards that you could carry would cost you. Attach your answer (in dollars) and your program (any language) and answer in your reply. 
+# Shopify Json Catalogue Parser (product.hs)
+
+Returns the cost of buying as much variations of keyboards and computers, without passing over 100kg.
+
+> costof ( (type = computer | type = keyboard) && sum(grams [purchases] < 100kg) )
+
+### Dependencies
+
+- [http-conduit] 
+- [aeson]
+
+[http-conduit]: <https://hackage.haskell.org/package/http-conduit>
+[aeson]: <https://hackage.haskell.org/package/aeson>
+
+### Installation
+
+```sh
+  $ brew install ghc haskell-platform
+  $ cabal install http-conduit aeson
+```
+
+### Usage
+
+```sh
+  $ ghc -e 'main' product.hs
+```

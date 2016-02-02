@@ -182,8 +182,8 @@ matchedProducts products types =
     filter (\x -> (matchesTypes (product_product_type x) types) ) products
  
 matchedVariants :: Shop -> [String] -> [Variant]
-matchedVariants catalogue types = foldr (++) [] (map product_variants (
-    matchedProducts (shop_data catalogue) types))
+matchedVariants catalogue types = foldr (++) [] (map product_variants 
+    (matchedProducts (shop_data catalogue) types))
 
 -- greedy approach
 orderVariantByGrams :: [Variant] -> [Variant]
@@ -198,20 +198,20 @@ rollingSumVariants variants = zip
 
 carryAsMuch :: [Variant] -> Integer -> [Variant]
 carryAsMuch variants strength = map snd 
-    (takeWhile (\(c_sum, variant) -> c_sum <= strength) (
-        rollingSumVariants (orderVariantByGrams variants)))
+    (takeWhile (\(c_sum, variant) -> c_sum <= strength) 
+        (rollingSumVariants (orderVariantByGrams variants)))
 
 numberOfOptions :: Variant -> Float
 numberOfOptions variant = 1
 
 costOfVariants :: [Variant] -> Float
 costOfVariants variants = foldr (+) 0 (
-    map (\x -> (variant_price x) * (numberOfOptions x)) variants)
+    map (\variant -> (variant_price variant) * 
+        (numberOfOptions variant)) variants)
 
 totalCost :: Shop -> [String] -> Integer -> Float
 totalCost catalogue types strength = costOfVariants(carryAsMuch 
     (matchedVariants catalogue types) strength) 
-
 
 -- Main
 
